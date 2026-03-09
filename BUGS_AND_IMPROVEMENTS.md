@@ -1,8 +1,9 @@
 # 🔍 Relatório de Bugs e Melhorias
 
 > Gerado em: 2026-03-09  
+> Re-analisado em: 2026-03-09  
 > Analisado por: Revisão automatizada completa de código  
-> Status geral: **Corrigido** — todas as correções aplicadas (exceto autenticação)
+> Status geral: **Quase completo** — 17/19 originais corrigidos + 3 novos encontrados na re-análise
 
 ---
 
@@ -46,9 +47,10 @@
   Sem instrução `USER`, o processo Flask roda como root. Se explorado, o atacante tem privilégios máximos.  
   **Fix:** Adicionar `RUN adduser ... && USER appuser` no Dockerfile.
 
-- [x] **Ausência de `.dockerignore`** (raiz do projeto)  
+- [ ] **Ausência de `.dockerignore`** (raiz do projeto)  
   `COPY . .` inclui `.git`, `data/db.json` e arquivos desnecessários na imagem Docker, aumentando tamanho e expondo dados.  
-  **Fix:** Criar `.dockerignore` excluindo `.git`, `data/db.json`, `*.md`, `__pycache__`.
+  **Fix:** Criar `.dockerignore` excluindo `.git`, `data/db.json`, `*.md`, `__pycache__`.  
+  ⚠️ *Re-análise: ainda pendente — arquivo não foi criado.*
 
 ---
 
@@ -108,12 +110,29 @@
 
 ---
 
+## 🆕 Novos Issues (encontrados na re-análise de 2026-03-09)
+
+- [ ] **`delElenco/delPartida/delTransacao` sem `try/catch`** (`index.html:1180, 1250, 1298`)  
+  As funções de **save** ganharam `try/catch`, mas as de **delete** não. Se o servidor retornar erro, a exceção não é tratada e `loadData()`/`updateUI()` não executam.  
+  **Fix:** Envolver cada `fetchAPI` de delete em `try/catch` com `showToast(...)` de erro.
+
+- [ ] **Import no meio do arquivo** (`app.py:23`)  
+  `from tools.db_json import ...` ficou após a constante `VALOR_MENSALIDADE` em vez de no topo com os demais imports (viola PEP 8).  
+  **Fix:** Mover o import para o bloco de imports no topo do arquivo (linhas 6-11).
+
+- [ ] **`DB_PATH` relativo pode falhar fora do Docker** (`tools/db_json.py:15`)  
+  Se `DB_PATH=data/db.json` for definido via `.env` (caminho relativo), o arquivo será gravado relativo ao working directory, não ao diretório do projeto.  
+  **Fix:** `DB_PATH = os.path.abspath(os.environ.get("DB_PATH", _DEFAULT_DB_PATH))`
+
+---
+
 ## 📊 Resumo
 
 | Categoria | Total | Pendentes |
 |---|---|---|
 | 🔴 Crítico | 2 | 0 |
-| 🟠 Alta | 5 | 0 |
+| 🟠 Alta | 5 | 1 (`.dockerignore`) |
 | 🟡 Média | 6 | 0 |
 | 🟢 Baixa | 6 | 2 |
-| **Total** | **19** | **2** |
+| 🆕 Novos | 3 | 3 |
+| **Total** | **22** | **6** |
