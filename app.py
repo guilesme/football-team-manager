@@ -9,6 +9,7 @@ from decimal import Decimal, InvalidOperation
 
 from dotenv import load_dotenv
 from flask import Flask, request, jsonify, render_template
+from tools.db_json import load_db, save_db, next_id, next_str_id
 
 # Load .env file if present (no-op if missing)
 load_dotenv()
@@ -19,8 +20,6 @@ app = Flask(__name__)
 # ─── Dashboard ────────────────────────────────────────────────────────────────
 
 VALOR_MENSALIDADE = Decimal(os.environ.get("VALOR_MENSALIDADE", "50.00"))
-
-from tools.db_json import load_db, save_db, next_id, next_str_id
 
 
 def _decimal_to_float(val):

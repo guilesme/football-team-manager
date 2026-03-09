@@ -1179,8 +1179,13 @@
 
         async function delElenco(id) {
             if (!confirm("Tem certeza que deseja excluir este jogador? O histórico será perdido.")) return;
-            await fetchAPI(`/elenco/${id}`, 'DELETE');
-            await loadData(); updateUI();
+            try {
+                await fetchAPI(`/elenco/${id}`, 'DELETE');
+                await loadData(); updateUI();
+                showToast('Jogador excluído com sucesso!');
+            } catch (e) {
+                showToast('Erro ao excluir jogador: ' + e.message, 'error');
+            }
         }
 
         // --- CRUD Partida ---
@@ -1249,8 +1254,13 @@
 
         async function delPartida(id) {
             if (!confirm("Excluir esta partida? Os gols marcados na artilharia serão revertidos.")) return;
-            await fetchAPI(`/calendario/${id}`, 'DELETE');
-            await loadData(); updateUI();
+            try {
+                await fetchAPI(`/calendario/${id}`, 'DELETE');
+                await loadData(); updateUI();
+                showToast('Partida excluída com sucesso!');
+            } catch (e) {
+                showToast('Erro ao excluir partida: ' + e.message, 'error');
+            }
         }
 
         // --- CRUD Financas ---
@@ -1297,8 +1307,13 @@
 
         async function delTransacao(id) {
             if (!confirm("Excluir esta transação?")) return;
-            await fetchAPI(`/financeiro/${id}`, 'DELETE');
-            await loadData(); updateUI();
+            try {
+                await fetchAPI(`/financeiro/${id}`, 'DELETE');
+                await loadData(); updateUI();
+                showToast('Transação excluída com sucesso!');
+            } catch (e) {
+                showToast('Erro ao excluir transação: ' + e.message, 'error');
+            }
         }
 
         // --- Quick Pay Mensalidade ---

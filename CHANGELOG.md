@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.1.1] — 2026-03-09
+
+### Fixed
+- **Delete functions without error handling**: `delElenco`, `delPartida`, and `delTransacao` now wrapped in `try/catch` with user-visible error toasts
+- **Import in the middle of the file**: moved `from tools.db_json import ...` to the top of `app.py` (PEP 8)
+- **`DB_PATH` relative path failure**: wrapped with `os.path.abspath()` so relative paths from `.env` resolve correctly
+
+---
+
 ## [1.1.0] — 2026-03-09
 
 ### Security

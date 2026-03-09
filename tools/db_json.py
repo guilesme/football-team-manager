@@ -12,7 +12,7 @@ from contextlib import contextmanager
 from copy import deepcopy
 
 _DEFAULT_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "db.json")
-DB_PATH = os.environ.get("DB_PATH", _DEFAULT_DB_PATH)
+DB_PATH = os.path.abspath(os.environ.get("DB_PATH", _DEFAULT_DB_PATH))
 
 DEFAULT_DB = {
     "config": {"ano": 2026, "moeda": "BRL"},
