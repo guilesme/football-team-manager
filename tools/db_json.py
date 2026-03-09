@@ -11,7 +11,8 @@ import sys
 from contextlib import contextmanager
 from copy import deepcopy
 
-DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "db.json")
+_DEFAULT_DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "db.json")
+DB_PATH = os.environ.get("DB_PATH", _DEFAULT_DB_PATH)
 
 DEFAULT_DB = {
     "config": {"ano": 2026, "moeda": "BRL"},
@@ -97,7 +98,9 @@ def save_db(data: dict):
     with open(tmp_path, "w", encoding="utf-8") as f:
         with _exclusive_lock(f):
             json.dump(data, f, ensure_ascii=False, indent=2)
-    os.replace(tmp_path, DB_PATH)
+            f.flush()
+            os.fsync(f.fileno())
+            os.replace(tmp_path, DB_PATH)
 
 
 def next_id(collection: list) -> int:
@@ -116,7 +119,7 @@ def next_str_id(collection: list, prefix: str) -> str:
         sid = item.get("id", "")
         if isinstance(sid, str) and sid.startswith(prefix + "_"):
             try:
-                nums.append(int(sid.split("_")[1]))
+                nums.append(int(sid[len(prefix) + 1:]))
             except (ValueError, IndexError):
                 pass
     n = max(nums) + 1 if nums else 1

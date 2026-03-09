@@ -3,15 +3,32 @@ app.py — Flask server for Football Team Management.
 Serves the dashboard and provides JSON API endpoints.
 """
 
+import datetime
+import os
+from decimal import Decimal, InvalidOperation
+
+from dotenv import load_dotenv
 from flask import Flask, request, jsonify, render_template
-from tools.db_json import load_db, save_db, next_id, next_str_id
+
+# Load .env file if present (no-op if missing)
+load_dotenv()
 
 app = Flask(__name__)
 
 
 # ─── Dashboard ────────────────────────────────────────────────────────────────
 
-VALOR_MENSALIDADE = 50.00
+VALOR_MENSALIDADE = Decimal(os.environ.get("VALOR_MENSALIDADE", "50.00"))
+
+from tools.db_json import load_db, save_db, next_id, next_str_id
+
+
+def _decimal_to_float(val):
+    """Safely convert Decimal (or any numeric) to float for JSON."""
+    if isinstance(val, Decimal):
+        return float(val)
+    return val
+
 
 @app.route("/")
 def index():
@@ -30,10 +47,10 @@ def pagar_mensalidade(jogador_id):
         "id": next_str_id(db["financeiro"], "tx"),
         "jogador_id": jogador_id,
         "descricao": "Mensalidade Fixa",
-        "valor": VALOR_MENSALIDADE,
+        "valor": float(VALOR_MENSALIDADE),
         "tipo": "receita",
         "status": "pago",
-        "data": "2026-03-05" # Hoje simplificado
+        "data": datetime.date.today().isoformat()
     }
     db['financeiro'].append(pagamento)
     save_db(db)
@@ -65,12 +82,13 @@ def add_jogador():
 @app.route("/api/elenco/<int:jogador_id>", methods=["PUT"])
 def update_jogador(jogador_id):
     db = load_db()
+    data = request.get_json(force=True) or {}
     for j in db["elenco"]:
         if j["id"] == jogador_id:
-            j["nome"] = request.json.get("nome", j["nome"])
-            j["posicao"] = request.json.get("posicao", j["posicao"])
-            if "gols" in request.json:
-                j["gols"] = request.json["gols"]
+            j["nome"] = data.get("nome", j["nome"])
+            j["posicao"] = data.get("posicao", j["posicao"])
+            if "gols" in data:
+                j["gols"] = data["gols"]
             save_db(db)
             return jsonify(j)
     return jsonify({"error": "Jogador não encontrado"}), 404
@@ -103,7 +121,9 @@ def add_partida():
     
     # Calculate goals for team
     placar_casa = data.get("placar_casa", 0)
+    warning = None
     if artilheiros and placar_casa < len(artilheiros):
+        warning = f"Placar ajustado de {placar_casa} para {len(artilheiros)} (quantidade de artilheiros marcados)"
         placar_casa = len(artilheiros)
         
     partida = {
@@ -125,22 +145,27 @@ def add_partida():
                     
     db["calendario"].append(partida)
     save_db(db)
-    return jsonify(partida), 201
+
+    response = dict(partida)
+    if warning:
+        response["warning"] = warning
+    return jsonify(response), 201
 
 
 @app.route("/api/calendario/<match_id>", methods=["PUT"])
 def update_partida(match_id):
     db = load_db()
+    data = request.get_json(force=True) or {}
     for p in db["calendario"]:
         if p["id"] == match_id:
-            p["data"] = request.json.get("data", p["data"])
-            p["adversario"] = request.json.get("adversario", p["adversario"])
-            p["placar_casa"] = request.json.get("placar_casa", p["placar_casa"])
-            p["placar_fora"] = request.json.get("placar_fora", p["placar_fora"])
-            p["status"] = request.json.get("status", p["status"])
+            p["data"] = data.get("data", p["data"])
+            p["adversario"] = data.get("adversario", p["adversario"])
+            p["placar_casa"] = data.get("placar_casa", p["placar_casa"])
+            p["placar_fora"] = data.get("placar_fora", p["placar_fora"])
+            p["status"] = data.get("status", p["status"])
 
             # Handle goal scorers — update player goal counts
-            new_artilheiros = request.json.get("artilheiros")
+            new_artilheiros = data.get("artilheiros")
             if new_artilheiros is not None:
                 # Reset goals from previous artilheiros for this match
                 for jid in p["artilheiros"]:
@@ -194,11 +219,15 @@ def get_financeiro():
 def add_transacao():
     db = load_db()
     data = request.get_json(force=True)
+    try:
+        valor = float(Decimal(str(data.get("valor", 0))))
+    except (InvalidOperation, ValueError):
+        valor = 0.0
     tx = {
         "id": next_str_id(db["financeiro"], "tx"),
         "jogador_id": data.get("jogador_id"),
         "descricao": data.get("descricao", ""),
-        "valor": float(data.get("valor", 0)),
+        "valor": valor,
         "tipo": data.get("tipo", "receita"),  # receita | despesa
         "status": data.get("status", "pendente"),
         "data": data.get("data", "")
@@ -211,14 +240,18 @@ def add_transacao():
 @app.route("/api/financeiro/<tx_id>", methods=["PUT"])
 def update_transacao(tx_id):
     db = load_db()
+    data = request.get_json(force=True) or {}
     for tx in db["financeiro"]:
         if tx["id"] == tx_id:
-            tx["jogador_id"] = request.json.get("jogador_id", tx["jogador_id"])
-            tx["descricao"] = request.json.get("descricao", tx.get("descricao", ""))
-            tx["valor"] = float(request.json.get("valor", tx["valor"]))
-            tx["tipo"] = request.json.get("tipo", tx.get("tipo", "receita"))
-            tx["status"] = request.json.get("status", tx["status"])
-            tx["data"] = request.json.get("data", tx["data"])
+            tx["jogador_id"] = data.get("jogador_id", tx["jogador_id"])
+            tx["descricao"] = data.get("descricao", tx.get("descricao", ""))
+            try:
+                tx["valor"] = float(Decimal(str(data.get("valor", tx["valor"]))))
+            except (InvalidOperation, ValueError):
+                pass
+            tx["tipo"] = data.get("tipo", tx.get("tipo", "receita"))
+            tx["status"] = data.get("status", tx["status"])
+            tx["data"] = data.get("data", tx["data"])
             save_db(db)
             return jsonify(tx)
     return jsonify({"error": "Transação não encontrada"}), 404
@@ -246,11 +279,11 @@ def get_stats():
 
     # Saldo financeiro
     receitas = sum(
-        t["valor"] for t in db["financeiro"]
+        Decimal(str(t["valor"])) for t in db["financeiro"]
         if t.get("tipo") == "receita" and t["status"] == "pago"
     )
     despesas = sum(
-        t["valor"] for t in db["financeiro"]
+        Decimal(str(t["valor"])) for t in db["financeiro"]
         if t.get("tipo") == "despesa" and t["status"] == "pago"
     )
     saldo = receitas - despesas
@@ -269,9 +302,9 @@ def get_stats():
     return jsonify({
         "total_jogadores": len(db["elenco"]),
         "artilharia": artilharia[:10],
-        "saldo": saldo,
-        "receitas": receitas,
-        "despesas": despesas,
+        "saldo": float(saldo),
+        "receitas": float(receitas),
+        "despesas": float(despesas),
         "proximo_jogo": proximo_jogo,
         "total_jogos": len(db["calendario"]),
         "jogos_finalizados": len(finalizados),
@@ -285,4 +318,6 @@ def get_stats():
 # ─── Run ─────────────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8080, debug=True)
+    debug_mode = os.environ.get("FLASK_DEBUG", "0") == "1"
+    port = int(os.environ.get("APP_PORT", "8080"))
+    app.run(host="0.0.0.0", port=port, debug=debug_mode)

@@ -918,6 +918,14 @@
 
     <!-- App Logic -->
     <script>
+        // HTML escape helper — prevents XSS via innerHTML
+        function esc(s) {
+            if (s == null) return '';
+            const div = document.createElement('div');
+            div.appendChild(document.createTextNode(String(s)));
+            return div.innerHTML;
+        }
+
         // Global State
         let elencoData = [];
         let calendarioData = [];
@@ -972,19 +980,20 @@
 
                 // Populate Selects
                 const jogSelect = document.getElementById('tx-jogador');
-                const listHtml = elencoData.map(j => `<option value="${j.id}">${j.nome}</option>`).join('');
+                const listHtml = elencoData.map(j => `<option value="${j.id}">${esc(j.nome)}</option>`).join('');
                 jogSelect.innerHTML = '<option value="">Nenhum</option>' + listHtml;
 
                 const scorerList = document.getElementById('scorer-list-container');
                 scorerList.innerHTML = elencoData.map(j => `
                     <label class="scorer-item">
                         <input type="checkbox" name="artilheiros" value="${j.id}">
-                        ${j.nome} (${j.posicao})
+                        ${esc(j.nome)} (${esc(j.posicao)})
                     </label>
                 `).join('');
 
             } catch (e) {
                 console.error("Error loading data:", e);
+                showToast('Erro ao carregar dados: ' + e.message, 'error', 5000);
             }
         }
 
@@ -1010,7 +1019,7 @@
                     const best = stats.artilharia[0];
                     document.getElementById('kpi-artilheiro').innerHTML = `
                         <div style="line-height:1.2;">
-                            <div style="font-size:1.15rem; font-weight:600;">${best.nome}</div>
+                            <div style="font-size:1.15rem; font-weight:600;">${esc(best.nome)}</div>
                             <div style="font-size: 0.8rem; color: var(--text-secondary); font-weight: normal; margin-top:2px;">${best.gols} gols marcados</div>
                         </div>
                     `;
@@ -1021,7 +1030,7 @@
                 if (stats.proximo_jogo) {
                     document.getElementById('kpi-proximo').innerHTML = `
                         <div style="line-height:1.2;">
-                            <div style="font-size:1.15rem; font-weight:600;">vs ${stats.proximo_jogo.adversario}</div>
+                            <div style="font-size:1.15rem; font-weight:600;">vs ${esc(stats.proximo_jogo.adversario)}</div>
                             <div style="font-size: 0.8rem; color: var(--accent); font-weight: normal; margin-top:2px;">${formatDate(stats.proximo_jogo.data)}</div>
                         </div>
                     `;
@@ -1037,7 +1046,7 @@
                 document.getElementById('dash-artilharia').innerHTML = stats.artilharia.slice(0, 5).map((j, i) => `
                     <tr>
                         <td style="width: 40px; color: ${i < 3 ? 'var(--warning)' : 'var(--text-secondary)'}">#${i + 1}</td>
-                        <td style="font-weight: 500;">${j.nome}</td>
+                        <td style="font-weight: 500;">${esc(j.nome)}</td>
                         <td style="font-weight: 600; color: var(--accent);">${j.gols}</td>
                     </tr>
                 `).join('') || `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary)">Nenhum dado</td></tr>`;
@@ -1046,8 +1055,8 @@
                 document.getElementById('table-elenco').innerHTML = elencoData.map(j => `
                     <tr>
                         <td style="color: var(--text-secondary)">#${j.id}</td>
-                        <td style="font-weight: 500">${j.nome}</td>
-                        <td><span class="badge" style="background: rgba(255,255,255,0.1)">${j.posicao}</span></td>
+                        <td style="font-weight: 500">${esc(j.nome)}</td>
+                        <td><span class="badge" style="background: rgba(255,255,255,0.1)">${esc(j.posicao)}</span></td>
                         <td style="font-weight: 600;">${j.gols}</td>
                         <td style="text-align: right;">
                             <button class="btn btn-icon" onclick="editElenco(${j.id})"><i class="fa-solid fa-pen"></i></button>
@@ -1060,14 +1069,14 @@
                 document.getElementById('table-calendario').innerHTML = calendarioData.sort((a, b) => new Date(b.data) - new Date(a.data)).map(p => `
                     <tr>
                         <td style="color: var(--text-secondary)">${formatDate(p.data)}</td>
-                        <td style="font-weight: 500">${p.adversario}</td>
+                        <td style="font-weight: 500">${esc(p.adversario)}</td>
                         <td style="text-align: center;">
                             ${p.status === 'finalizado' ? `<span style="font-size:1.1rem; font-weight:600; padding:4px 12px; background:rgba(255,255,255,0.05); border-radius:6px; font-variant-numeric: tabular-nums;">${p.placar_casa} - ${p.placar_fora}</span>` : '<span style="color:var(--text-secondary)">-</span>'}
                         </td>
-                        <td><span class="badge ${p.status}">${p.status.toUpperCase()}</span></td>
+                        <td><span class="badge ${esc(p.status)}">${esc(p.status).toUpperCase()}</span></td>
                         <td style="text-align: right;">
-                            <button class="btn btn-icon" onclick="editPartida('${p.id}')"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn btn-icon btn-danger" onclick="delPartida('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+                            <button class="btn btn-icon" onclick="editPartida('${esc(p.id)}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-icon btn-danger" onclick="delPartida('${esc(p.id)}')"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
                 `).join('') || `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary)">Sem jogos cadastrados</td></tr>`;
@@ -1081,24 +1090,24 @@
 
                 document.getElementById('table-financeiro').innerHTML = financeiroData.sort((a, b) => new Date(b.data) - new Date(a.data)).map(t => {
                     const jog = elencoData.find(j => j.id == t.jogador_id);
-                    const jogNome = jog ? jog.nome : '<span style="color:var(--text-secondary)">-</span>';
+                    const jogNome = jog ? esc(jog.nome) : '<span style="color:var(--text-secondary)">-</span>';
                     const numColor = t.tipo === 'receita' ? 'var(--success)' : 'var(--danger)';
                     const sign = t.tipo === 'despesa' ? '- ' : '+ ';
                     return `
                     <tr>
                         <td style="color: var(--text-secondary)">${formatDate(t.data)}</td>
                         <td>
-                            <div style="font-weight: 500">${t.descricao}</div>
-                            <span class="badge ${t.tipo}" style="margin-top: 6px; display: inline-block;">${t.tipo.toUpperCase()}</span>
+                            <div style="font-weight: 500">${esc(t.descricao)}</div>
+                            <span class="badge ${esc(t.tipo)}" style="margin-top: 6px; display: inline-block;">${esc(t.tipo).toUpperCase()}</span>
                         </td>
                         <td>${jogNome}</td>
                         <td style="font-weight: 600; font-variant-numeric: tabular-nums; color: ${numColor}">
                             ${sign}R$ ${formatTableMoney(t.valor)}
                         </td>
-                        <td><span class="badge badge-${t.status} ${t.status}">${t.status.toUpperCase()}</span></td>
+                        <td><span class="badge badge-${esc(t.status)} ${esc(t.status)}">${esc(t.status).toUpperCase()}</span></td>
                         <td style="text-align: right;">
-                            <button class="btn btn-icon" onclick="editTransacao('${t.id}')"><i class="fa-solid fa-pen"></i></button>
-                            <button class="btn btn-icon btn-danger" onclick="delTransacao('${t.id}')"><i class="fa-solid fa-trash"></i></button>
+                            <button class="btn btn-icon" onclick="editTransacao('${esc(t.id)}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-icon btn-danger" onclick="delTransacao('${esc(t.id)}')"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
                 `}).join('') || `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary)">Sem transações registradas</td></tr>`;
@@ -1106,7 +1115,7 @@
                 // --- Mensalidades Rápidas (Quick Pay) ---
                 document.getElementById('lista-mensalidades').innerHTML = elencoData.map(j => `
                     <div class="card" style="min-width: 200px; padding: 1rem; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.4);">
-                        <div style="font-weight: 500; font-size: 1rem; margin-bottom: 0.25rem;">${j.nome}</div>
+                        <div style="font-weight: 500; font-size: 1rem; margin-bottom: 0.25rem;">${esc(j.nome)}</div>
                         <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">Mensalidade Fixa</div>
                         <button class="btn btn-success" style="width: 100%; justify-content: center;" onclick="pagarMensalidade(${j.id})">
                             <i class="fa-solid fa-check"></i> Receber
@@ -1145,22 +1154,27 @@
         }
 
         async function saveElenco() {
-            const id = document.getElementById('elenco-id').value;
-            const data = {
-                nome: document.getElementById('elenco-nome').value,
-                posicao: document.getElementById('elenco-posicao').value
-            };
+            try {
+                const id = document.getElementById('elenco-id').value;
+                const data = {
+                    nome: document.getElementById('elenco-nome').value,
+                    posicao: document.getElementById('elenco-posicao').value
+                };
 
-            if (id) {
-                await fetchAPI(`/elenco/${id}`, 'PUT', data);
-            } else {
-                await fetchAPI('/elenco', 'POST', data);
+                if (id) {
+                    await fetchAPI(`/elenco/${id}`, 'PUT', data);
+                } else {
+                    await fetchAPI('/elenco', 'POST', data);
+                }
+
+                closeModal('modal-elenco');
+                document.getElementById('form-elenco').reset();
+                document.getElementById('elenco-id').value = '';
+                await loadData(); updateUI();
+                showToast('Jogador salvo com sucesso!');
+            } catch (e) {
+                showToast('Erro ao salvar jogador: ' + e.message, 'error');
             }
-
-            closeModal('modal-elenco');
-            document.getElementById('form-elenco').reset();
-            document.getElementById('elenco-id').value = '';
-            await loadData(); updateUI();
         }
 
         async function delElenco(id) {
@@ -1197,33 +1211,40 @@
         }
 
         async function savePartida() {
-            const id = document.getElementById('partida-id').value;
-            const status = document.getElementById('partida-status').value;
+            try {
+                const id = document.getElementById('partida-id').value;
+                const status = document.getElementById('partida-status').value;
 
-            const checkedBoxes = Array.from(document.querySelectorAll('input[name="artilheiros"]:checked'));
-            const artilheirosList = checkedBoxes.map(cb => parseInt(cb.value));
+                const checkedBoxes = Array.from(document.querySelectorAll('input[name="artilheiros"]:checked'));
+                const artilheirosList = checkedBoxes.map(cb => parseInt(cb.value));
 
-            const data = {
-                data: document.getElementById('partida-data').value,
-                adversario: document.getElementById('partida-adv').value,
-                status: status,
-                placar_casa: parseInt(document.getElementById('partida-casa').value || 0),
-                placar_fora: parseInt(document.getElementById('partida-fora').value || 0),
-                artilheiros: artilheirosList
-            };
+                const data = {
+                    data: document.getElementById('partida-data').value,
+                    adversario: document.getElementById('partida-adv').value,
+                    status: status,
+                    placar_casa: parseInt(document.getElementById('partida-casa').value || 0),
+                    placar_fora: parseInt(document.getElementById('partida-fora').value || 0),
+                    artilheiros: artilheirosList
+                };
 
-            if (id) {
-                await fetchAPI(`/calendario/${id}`, 'PUT', data);
-            } else {
-                await fetchAPI('/calendario', 'POST', data);
+                if (id) {
+                    await fetchAPI(`/calendario/${id}`, 'PUT', data);
+                } else {
+                    await fetchAPI('/calendario', 'POST', data);
+                }
+
+                closeModal('modal-partida');
+                document.getElementById('form-partida').reset();
+                document.getElementById('partida-id').value = '';
+                document.getElementById('partida-status').value = 'agendado';
+                // Reset artilheiro checkboxes
+                document.querySelectorAll('input[name="artilheiros"]').forEach(cb => cb.checked = false);
+                togglePartidaFields();
+                await loadData(); updateUI();
+                showToast('Partida salva com sucesso!');
+            } catch (e) {
+                showToast('Erro ao salvar partida: ' + e.message, 'error');
             }
-
-            closeModal('modal-partida');
-            document.getElementById('form-partida').reset();
-            document.getElementById('partida-id').value = '';
-            document.getElementById('partida-status').value = 'agendado';
-            togglePartidaFields();
-            await loadData(); updateUI();
         }
 
         async function delPartida(id) {
@@ -1247,26 +1268,31 @@
         }
 
         async function saveTransacao() {
-            const id = document.getElementById('tx-id').value;
-            const data = {
-                data: document.getElementById('tx-data').value,
-                tipo: document.getElementById('tx-tipo').value,
-                descricao: document.getElementById('tx-desc').value,
-                valor: parseFloat(document.getElementById('tx-valor').value),
-                status: document.getElementById('tx-status').value,
-                jogador_id: document.getElementById('tx-jogador').value ? parseInt(document.getElementById('tx-jogador').value) : null
-            };
+            try {
+                const id = document.getElementById('tx-id').value;
+                const data = {
+                    data: document.getElementById('tx-data').value,
+                    tipo: document.getElementById('tx-tipo').value,
+                    descricao: document.getElementById('tx-desc').value,
+                    valor: parseFloat(document.getElementById('tx-valor').value),
+                    status: document.getElementById('tx-status').value,
+                    jogador_id: document.getElementById('tx-jogador').value ? parseInt(document.getElementById('tx-jogador').value) : null
+                };
 
-            if (id) {
-                await fetchAPI(`/financeiro/${id}`, 'PUT', data);
-            } else {
-                await fetchAPI('/financeiro', 'POST', data);
+                if (id) {
+                    await fetchAPI(`/financeiro/${id}`, 'PUT', data);
+                } else {
+                    await fetchAPI('/financeiro', 'POST', data);
+                }
+
+                closeModal('modal-transacao');
+                document.getElementById('form-transacao').reset();
+                document.getElementById('tx-id').value = '';
+                await loadData(); updateUI();
+                showToast('Transação salva com sucesso!');
+            } catch (e) {
+                showToast('Erro ao salvar transação: ' + e.message, 'error');
             }
-
-            closeModal('modal-transacao');
-            document.getElementById('form-transacao').reset();
-            document.getElementById('tx-id').value = '';
-            await loadData(); updateUI();
         }
 
         async function delTransacao(id) {
@@ -1281,7 +1307,7 @@
             const toast = document.createElement('div');
             const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-xmark';
             toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="fa-solid ${icon}"></i> ${message}`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> ${esc(message)}`;
             container.appendChild(toast);
             setTimeout(() => toast.remove(), duration);
         }
@@ -1303,14 +1329,20 @@
         document.querySelectorAll('.btn-primary').forEach(btn => {
             if (btn.textContent.includes('Novo') || btn.textContent.includes('Agendar')) {
                 btn.addEventListener('click', () => {
-                    const formId = 'form-' + btn.getAttribute('onclick').match(/'modal-(.*)'/)[1];
-                    const idField = btn.getAttribute('onclick').match(/'modal-(.*)'/)[1] + '-id';
+                    const onclickAttr = btn.getAttribute('onclick') || '';
+                    const match = onclickAttr.match(/'modal-(.*)'/);
+                    if (!match) return;
+                    const section = match[1];
+                    const formId = 'form-' + section;
+                    const idField = section + '-id';
 
                     document.getElementById(formId).reset();
                     document.getElementById(idField).value = '';
 
                     if (formId === 'form-partida') {
                         document.getElementById('partida-status').value = 'agendado';
+                        // Reset artilheiro checkboxes
+                        document.querySelectorAll('input[name="artilheiros"]').forEach(cb => cb.checked = false);
                         togglePartidaFields();
                         document.getElementById('modal-partida-title').textContent = "Agendar Jogo";
                     } else if (formId === 'form-elenco') {

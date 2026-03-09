@@ -1,0 +1,30 @@
+# Git
+.git
+.gitignore
+
+# Database (user data — should not be baked into image)
+data/db.json
+data/*.tmp
+
+# Documentation
+*.md
+LICENSE
+
+# Python caches
+__pycache__
+*.py[cod]
+*$py.class
+
+# Environment files
+.env
+.env.*
+
+# IDE / Editor files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db

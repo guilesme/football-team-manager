@@ -9,6 +9,13 @@ COPY . .
 
 RUN mkdir -p /app/data
 
+# Run as non-root user for security
+RUN addgroup --system appgroup && \
+    adduser --system --ingroup appgroup appuser && \
+    chown -R appuser:appgroup /app/data
+
+USER appuser
+
 EXPOSE 8080
 
 CMD ["python", "app.py"]
