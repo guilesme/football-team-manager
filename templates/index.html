@@ -1,0 +1,1327 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão do Time 2026</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/inter-ui/3.19.3/inter.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --surface: rgba(30, 41, 59, 0.7);
+            --surface-hover: rgba(30, 41, 59, 0.9);
+            --border: rgba(255, 255, 255, 0.1);
+            --text: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text);
+            min-height: 100vh;
+            display: flex;
+            background-image:
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(16, 185, 129, 0.15) 0%, transparent 50%);
+            background-attachment: fixed;
+        }
+
+        /* Sidebar Navigation */
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px);
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--text);
+            text-decoration: none;
+        }
+
+        .logo i {
+            color: var(--success);
+            font-size: 1.75rem;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .nav-item {
+            padding: 0.875rem 1rem;
+            border-radius: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+            transition: all 0.2s ease;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .nav-item:hover {
+            background: var(--surface);
+            color: var(--text);
+        }
+
+        .nav-item.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+            border-left: 3px solid var(--accent);
+        }
+
+        /* Main Content Area */
+        .main-content {
+            margin-left: 280px;
+            padding: 2.5rem;
+            width: calc(100% - 280px);
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2.5rem;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            letter-spacing: -0.025em;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Glass Cards */
+        .card {
+            background: var(--surface);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        /* KPI Grid */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .kpi-card .label {
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .kpi-card .value {
+            font-size: 2.25rem;
+            font-weight: 700;
+        }
+
+        .kpi-card .value.positive {
+            color: var(--success);
+        }
+
+        .kpi-card .value.negative {
+            color: var(--danger);
+        }
+
+        /* Two Column Layout */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        /* Tables */
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            color: var(--text-secondary);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.875rem;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Badges & Tags */
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .badge.receita {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--success);
+        }
+
+        .badge.despesa {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--danger);
+        }
+
+        .badge.pago {
+            border: 1px solid var(--success);
+            color: var(--success);
+        }
+
+        .badge.pendente {
+            border: 1px solid var(--warning);
+            color: var(--warning);
+        }
+
+        .badge.agendado {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+        }
+
+        .badge.finalizado {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--text-secondary);
+        }
+
+        /* Buttons */
+        .btn {
+            background: var(--surface);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            background: var(--surface-hover);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        .btn-success {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .btn-danger {
+            background: transparent;
+            color: var(--danger);
+            border-color: transparent;
+        }
+
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+        }
+
+        /* Action Headers */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: #1e293b;
+            border: 1px solid var(--border);
+            border-radius: 1rem;
+            width: 100%;
+            max-width: 500px;
+            transform: translateY(20px);
+            transition: transform 0.2s ease;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active .modal {
+            transform: translateY(0);
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1e293b;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+        }
+
+        .modal-footer {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            background: #1e293b;
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover {
+            color: var(--text);
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        select.form-control {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+        }
+
+        /* Checkbox list for artilheiros */
+        .scorer-list {
+            max-height: 200px;
+            overflow-y: auto;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+        }
+
+        .scorer-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+        }
+
+        .scorer-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Toast Notification */
+        #toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .toast {
+            padding: 1rem 1.5rem;
+            border-radius: 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+            animation: slideIn 0.3s ease;
+            min-width: 280px;
+        }
+
+        .toast.success {
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            color: var(--success);
+        }
+
+        .toast.error {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            color: var(--danger);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(100%);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="logo">
+            <i class="fa-solid fa-shield-halved"></i>
+            Gestão 2026
+        </div>
+        <div class="nav-links">
+            <a class="nav-item active" data-tab="dashboard" onclick="changeTab('dashboard', this)">
+                <i class="fa-solid fa-chart-pie"></i> Visão Geral
+            </a>
+            <a class="nav-item" data-tab="elenco" onclick="changeTab('elenco', this)">
+                <i class="fa-solid fa-users"></i> Elenco
+            </a>
+            <a class="nav-item" data-tab="calendario" onclick="changeTab('calendario', this)">
+                <i class="fa-solid fa-calendar-days"></i> Calendário
+            </a>
+            <a class="nav-item" data-tab="financeiro" onclick="changeTab('financeiro', this)">
+                <i class="fa-solid fa-wallet"></i> Financeiro
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+        <!-- DASHBOARD TAB -->
+        <div id="tab-dashboard" class="tab-content active">
+            <header>
+                <h1>Visão Geral</h1>
+                <div class="date-display" id="current-date" style="color:var(--text-secondary)">--</div>
+            </header>
+
+            <div class="kpi-grid">
+                <div class="card kpi-card">
+                    <span class="label"><i class="fa-solid fa-wallet"></i> Saldo em Caixa</span>
+                    <span class="value" id="kpi-saldo">R$ 0,00</span>
+                </div>
+                <div class="card kpi-card">
+                    <span class="label"><i class="fa-solid fa-users"></i> Elenco Ativo</span>
+                    <span class="value" id="kpi-jogadores">0</span>
+                </div>
+                <div class="card kpi-card">
+                    <span class="label"><i class="fa-solid fa-trophy text-warning"></i> Artilheiro</span>
+                    <span class="value" id="kpi-artilheiro"
+                        style="font-size: 1.5rem; display: flex; align-items: center; height: 100%;">Nenhum</span>
+                </div>
+                <div class="card kpi-card">
+                    <span class="label"><i class="fa-solid fa-calendar-check text-accent"></i> Próximo Jogo</span>
+                    <span class="value" id="kpi-proximo"
+                        style="font-size: 1.25rem; display: flex; align-items: center; height: 100%;">Nenhum
+                        agendado</span>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div class="section-header">
+                        <h2><i class="fa-solid fa-ranking-star text-warning"></i> Top Artilheiros</h2>
+                    </div>
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Pos</th>
+                                    <th>Jogador</th>
+                                    <th>Gols</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-artilharia">
+                                <!-- Filled via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="section-header">
+                        <h2><i class="fa-solid fa-chart-line text-success"></i> Desempenho</h2>
+                    </div>
+                    <div class="kpi-grid" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: 0;">
+                        <div class="kpi-card" style="text-align: center;">
+                            <span class="label" style="justify-content: center;">Vitórias</span>
+                            <span class="value positive" id="kpi-vitorias">0</span>
+                        </div>
+                        <div class="kpi-card" style="text-align: center;">
+                            <span class="label" style="justify-content: center;">Empates</span>
+                            <span class="value" style="color: var(--warning)" id="kpi-empates">0</span>
+                        </div>
+                        <div class="kpi-card" style="text-align: center;">
+                            <span class="label" style="justify-content: center;">Derrotas</span>
+                            <span class="value negative" id="kpi-derrotas">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ELENCO TAB -->
+        <div id="tab-elenco" class="tab-content">
+            <header>
+                <h1>Elenco</h1>
+                <button class="btn btn-primary" onclick="openModal('modal-elenco')">
+                    <i class="fa-solid fa-plus"></i> Novo Jogador
+                </button>
+            </header>
+
+            <div class="card">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>#ID</th>
+                                <th>Nome</th>
+                                <th>Posição</th>
+                                <th>Gols</th>
+                                <th style="text-align: right;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-elenco">
+                            <!-- Filled via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- CALENDÁRIO TAB -->
+        <div id="tab-calendario" class="tab-content">
+            <header>
+                <h1>Calendário de Jogos</h1>
+                <button class="btn btn-primary" onclick="openModal('modal-partida')">
+                    <i class="fa-solid fa-plus"></i> Agendar Jogo
+                </button>
+            </header>
+
+            <div class="card">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Adversário</th>
+                                <th style="text-align: center;">Placar</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-calendario">
+                            <!-- Filled via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- FINANCEIRO TAB -->
+        <div id="tab-financeiro" class="tab-content">
+            <header>
+                <h1>Controle Financeiro</h1>
+                <button class="btn btn-primary" onclick="openModal('modal-transacao')">
+                    <i class="fa-solid fa-plus"></i> Nova Transação
+                </button>
+            </header>
+
+            <div class="kpi-grid" style="grid-template-columns: 1fr 1fr 1fr;">
+                <div class="card kpi-card"
+                    style="background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.2);">
+                    <span class="label">Receitas</span>
+                    <span class="value positive" id="fin-receitas">R$ 0,00</span>
+                </div>
+                <div class="card kpi-card"
+                    style="background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2);">
+                    <span class="label">Despesas</span>
+                    <span class="value negative" id="fin-despesas">R$ 0,00</span>
+                </div>
+                <div class="card kpi-card"
+                    style="background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.2);">
+                    <span class="label">Saldo Atual</span>
+                    <span class="value" id="fin-saldo" style="color: var(--accent);">R$ 0,00</span>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 2rem;">
+                <div class="section-header" style="margin-bottom: 1rem;">
+                    <h2><i class="fa-solid fa-money-bill-wave text-success"></i> Receber Mensalidade (R$ 50,00)</h2>
+                </div>
+                <div style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem;"
+                    id="lista-mensalidades">
+                    <!-- Filled via JS -->
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição / Tipo</th>
+                                <th>Jogador Rela.</th>
+                                <th>Valor</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-financeiro">
+                            <!-- Filled via JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal: Elenco -->
+    <div class="modal-overlay" id="modal-elenco">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-elenco-title">Novo Jogador</h3>
+                <button class="close-btn" onclick="closeModal('modal-elenco')"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-elenco" onsubmit="event.preventDefault(); saveElenco();">
+                    <input type="hidden" id="elenco-id">
+                    <div class="form-group">
+                        <label>Nome do Jogador</label>
+                        <input type="text" id="elenco-nome" class="form-control" required placeholder="Ex: João Silva">
+                    </div>
+                    <div class="form-group">
+                        <label>Posição</label>
+                        <select id="elenco-posicao" class="form-control" required>
+                            <option value="">Selecione...</option>
+                            <option value="Goleiro">Goleiro</option>
+                            <option value="Zagueiro">Zagueiro</option>
+                            <option value="Lateral">Lateral</option>
+                            <option value="Volante">Volante</option>
+                            <option value="Meia">Meia</option>
+                            <option value="Atacante">Atacante</option>
+                        </select>
+                    </div>
+                    <div style="display:none">
+                        <button type="submit" id="btn-submit-elenco"></button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal('modal-elenco')">Cancelar</button>
+                <button class="btn btn-primary" onclick="document.getElementById('btn-submit-elenco').click()">Salvar
+                    Jogador</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Partida -->
+    <div class="modal-overlay" id="modal-partida">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-partida-title">Agendar Jogo</h3>
+                <button class="close-btn" onclick="closeModal('modal-partida')"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-partida" onsubmit="event.preventDefault(); savePartida();">
+                    <input type="hidden" id="partida-id">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Data</label>
+                            <input type="date" id="partida-data" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="partida-status" class="form-control" required onchange="togglePartidaFields()">
+                                <option value="agendado">Agendado</option>
+                                <option value="finalizado">Finalizado</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Adversário</label>
+                        <input type="text" id="partida-adv" class="form-control" required
+                            placeholder="Ex: Time Rival F.C.">
+                    </div>
+
+                    <!-- Only shown when finalizado -->
+                    <div id="placar-fields"
+                        style="display: none; margin-top: 1.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
+                        <h4 style="margin-bottom: 1rem; color: var(--text);">Resultado da Partida</h4>
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label>Gols Nosso Time</label>
+                                <input type="number" id="partida-casa" class="form-control" min="0" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>Gols Adversário</label>
+                                <input type="number" id="partida-fora" class="form-control" min="0" value="0">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Jogadores que fizeram os gols (Artilheiros)</label>
+                            <div class="scorer-list" id="scorer-list-container">
+                                <!-- Filled via JS: checkboxes of players -->
+                            </div>
+                            <small style="color: var(--text-secondary); margin-top: 0.5rem; display: block;">
+                                * Marque a caixinha do jogador se ele fez pelo menos 1 gol.
+                            </small>
+                        </div>
+                    </div>
+                    <div style="display:none">
+                        <button type="submit" id="btn-submit-partida"></button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal('modal-partida')">Cancelar</button>
+                <button class="btn btn-primary" onclick="document.getElementById('btn-submit-partida').click()">Salvar
+                    Partida</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Transacao -->
+    <div class="modal-overlay" id="modal-transacao">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modal-transacao-title">Nova Transação</h3>
+                <button class="close-btn" onclick="closeModal('modal-transacao')"><i
+                        class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-transacao" onsubmit="event.preventDefault(); saveTransacao();">
+                    <input type="hidden" id="tx-id">
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Data</label>
+                            <input type="date" id="tx-data" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tipo</label>
+                            <select id="tx-tipo" class="form-control" required>
+                                <option value="receita">Receita (Entrada)</option>
+                                <option value="despesa">Despesa (Saída)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Descrição (Ex: Mensalidade Fev/26, Equipamentos)</label>
+                        <input type="text" id="tx-desc" class="form-control" required>
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Valor (R$)</label>
+                            <input type="number" step="0.01" id="tx-valor" class="form-control" required
+                                placeholder="50.00">
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="tx-status" class="form-control" required>
+                                <option value="pendente">Pendente</option>
+                                <option value="pago">Pago</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Jogador Relacionado (Opcional)</label>
+                        <select id="tx-jogador" class="form-control">
+                            <option value="">Nenhum</option>
+                            <!-- Filled via JS -->
+                        </select>
+                    </div>
+                    <div style="display:none">
+                        <button type="submit" id="btn-submit-transacao"></button>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeModal('modal-transacao')">Cancelar</button>
+                <button class="btn btn-primary" onclick="document.getElementById('btn-submit-transacao').click()">Salvar
+                    Transação</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- App Logic -->
+    <script>
+        // Global State
+        let elencoData = [];
+        let calendarioData = [];
+        let financeiroData = [];
+
+        // Formatting Helpers
+        const formatMoney = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
+        const formatDate = (iso) => {
+            if (!iso) return '--';
+            const [y, m, d] = iso.split('-');
+            return `${d}/${m}/${y}`;
+        };
+
+        // --- Navigation ---
+        function changeTab(tabName, elem) {
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+
+            elem.classList.add('active');
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        const today = new Date();
+        document.getElementById('current-date').textContent = today.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+
+        // --- API Integration ---
+        const API_BASE = '/api';
+
+        async function fetchAPI(endpoint, method = 'GET', body = null) {
+            const opts = { method, headers: { 'Content-Type': 'application/json' } };
+            if (body) opts.body = JSON.stringify(body);
+            const res = await fetch(`${API_BASE}${endpoint}`, opts);
+            if (!res.ok) throw new Error(`API Error: ${res.status}`);
+            return await res.json();
+        }
+
+        async function initApp() {
+            await loadData();
+            updateUI();
+        }
+
+        async function loadData() {
+            try {
+                const [elenco, cal, fin] = await Promise.all([
+                    fetchAPI('/elenco'),
+                    fetchAPI('/calendario'),
+                    fetchAPI('/financeiro')
+                ]);
+                elencoData = elenco;
+                calendarioData = cal;
+                financeiroData = fin;
+
+                // Populate Selects
+                const jogSelect = document.getElementById('tx-jogador');
+                const listHtml = elencoData.map(j => `<option value="${j.id}">${j.nome}</option>`).join('');
+                jogSelect.innerHTML = '<option value="">Nenhum</option>' + listHtml;
+
+                const scorerList = document.getElementById('scorer-list-container');
+                scorerList.innerHTML = elencoData.map(j => `
+                    <label class="scorer-item">
+                        <input type="checkbox" name="artilheiros" value="${j.id}">
+                        ${j.nome} (${j.posicao})
+                    </label>
+                `).join('');
+
+            } catch (e) {
+                console.error("Error loading data:", e);
+            }
+        }
+
+        function updateBadges(val, positiveClass) {
+            // Helper for formatting
+            if (typeof val === 'number') {
+                return val > 0 ? positiveClass : (val < 0 ? 'negative' : '');
+            }
+            return '';
+        }
+
+        async function updateUI() {
+            try {
+                const stats = await fetchAPI('/stats');
+
+                // --- Dashboard KPI ---
+                document.getElementById('kpi-saldo').textContent = formatMoney(stats.saldo);
+                document.getElementById('kpi-saldo').className = `value ${stats.saldo >= 0 ? 'positive' : 'negative'}`;
+
+                document.getElementById('kpi-jogadores').textContent = stats.total_jogadores;
+
+                if (stats.artilharia.length > 0 && stats.artilharia[0].gols > 0) {
+                    const best = stats.artilharia[0];
+                    document.getElementById('kpi-artilheiro').innerHTML = `
+                        <div style="line-height:1.2;">
+                            <div style="font-size:1.15rem; font-weight:600;">${best.nome}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); font-weight: normal; margin-top:2px;">${best.gols} gols marcados</div>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('kpi-artilheiro').textContent = "Sem gols";
+                }
+
+                if (stats.proximo_jogo) {
+                    document.getElementById('kpi-proximo').innerHTML = `
+                        <div style="line-height:1.2;">
+                            <div style="font-size:1.15rem; font-weight:600;">vs ${stats.proximo_jogo.adversario}</div>
+                            <div style="font-size: 0.8rem; color: var(--accent); font-weight: normal; margin-top:2px;">${formatDate(stats.proximo_jogo.data)}</div>
+                        </div>
+                    `;
+                } else {
+                    document.getElementById('kpi-proximo').textContent = "Nenhum";
+                }
+
+                document.getElementById('kpi-vitorias').textContent = stats.vitorias;
+                document.getElementById('kpi-empates').textContent = stats.empates;
+                document.getElementById('kpi-derrotas').textContent = stats.derrotas;
+
+                // --- Dashboard Tables ---
+                document.getElementById('dash-artilharia').innerHTML = stats.artilharia.slice(0, 5).map((j, i) => `
+                    <tr>
+                        <td style="width: 40px; color: ${i < 3 ? 'var(--warning)' : 'var(--text-secondary)'}">#${i + 1}</td>
+                        <td style="font-weight: 500;">${j.nome}</td>
+                        <td style="font-weight: 600; color: var(--accent);">${j.gols}</td>
+                    </tr>
+                `).join('') || `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary)">Nenhum dado</td></tr>`;
+
+                // --- Elenco Table ---
+                document.getElementById('table-elenco').innerHTML = elencoData.map(j => `
+                    <tr>
+                        <td style="color: var(--text-secondary)">#${j.id}</td>
+                        <td style="font-weight: 500">${j.nome}</td>
+                        <td><span class="badge" style="background: rgba(255,255,255,0.1)">${j.posicao}</span></td>
+                        <td style="font-weight: 600;">${j.gols}</td>
+                        <td style="text-align: right;">
+                            <button class="btn btn-icon" onclick="editElenco(${j.id})"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-icon btn-danger" onclick="delElenco(${j.id})"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('') || `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary)">Sem jogadores cadastrados</td></tr>`;
+
+                // --- Calendario Table ---
+                document.getElementById('table-calendario').innerHTML = calendarioData.sort((a, b) => new Date(b.data) - new Date(a.data)).map(p => `
+                    <tr>
+                        <td style="color: var(--text-secondary)">${formatDate(p.data)}</td>
+                        <td style="font-weight: 500">${p.adversario}</td>
+                        <td style="text-align: center;">
+                            ${p.status === 'finalizado' ? `<span style="font-size:1.1rem; font-weight:600; padding:4px 12px; background:rgba(255,255,255,0.05); border-radius:6px; font-variant-numeric: tabular-nums;">${p.placar_casa} - ${p.placar_fora}</span>` : '<span style="color:var(--text-secondary)">-</span>'}
+                        </td>
+                        <td><span class="badge ${p.status}">${p.status.toUpperCase()}</span></td>
+                        <td style="text-align: right;">
+                            <button class="btn btn-icon" onclick="editPartida('${p.id}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-icon btn-danger" onclick="delPartida('${p.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('') || `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary)">Sem jogos cadastrados</td></tr>`;
+
+                // --- Financeiro Table ---
+                const formatTableMoney = (val) => new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
+
+                document.getElementById('fin-receitas').textContent = formatMoney(stats.receitas);
+                document.getElementById('fin-despesas').textContent = formatMoney(stats.despesas);
+                document.getElementById('fin-saldo').textContent = formatMoney(stats.saldo);
+
+                document.getElementById('table-financeiro').innerHTML = financeiroData.sort((a, b) => new Date(b.data) - new Date(a.data)).map(t => {
+                    const jog = elencoData.find(j => j.id == t.jogador_id);
+                    const jogNome = jog ? jog.nome : '<span style="color:var(--text-secondary)">-</span>';
+                    const numColor = t.tipo === 'receita' ? 'var(--success)' : 'var(--danger)';
+                    const sign = t.tipo === 'despesa' ? '- ' : '+ ';
+                    return `
+                    <tr>
+                        <td style="color: var(--text-secondary)">${formatDate(t.data)}</td>
+                        <td>
+                            <div style="font-weight: 500">${t.descricao}</div>
+                            <span class="badge ${t.tipo}" style="margin-top: 6px; display: inline-block;">${t.tipo.toUpperCase()}</span>
+                        </td>
+                        <td>${jogNome}</td>
+                        <td style="font-weight: 600; font-variant-numeric: tabular-nums; color: ${numColor}">
+                            ${sign}R$ ${formatTableMoney(t.valor)}
+                        </td>
+                        <td><span class="badge badge-${t.status} ${t.status}">${t.status.toUpperCase()}</span></td>
+                        <td style="text-align: right;">
+                            <button class="btn btn-icon" onclick="editTransacao('${t.id}')"><i class="fa-solid fa-pen"></i></button>
+                            <button class="btn btn-icon btn-danger" onclick="delTransacao('${t.id}')"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `}).join('') || `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary)">Sem transações registradas</td></tr>`;
+
+                // --- Mensalidades Rápidas (Quick Pay) ---
+                document.getElementById('lista-mensalidades').innerHTML = elencoData.map(j => `
+                    <div class="card" style="min-width: 200px; padding: 1rem; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.4);">
+                        <div style="font-weight: 500; font-size: 1rem; margin-bottom: 0.25rem;">${j.nome}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">Mensalidade Fixa</div>
+                        <button class="btn btn-success" style="width: 100%; justify-content: center;" onclick="pagarMensalidade(${j.id})">
+                            <i class="fa-solid fa-check"></i> Receber
+                        </button>
+                    </div>
+                `).join('') || `<div style="padding: 1rem; color: var(--text-secondary);">Cadastre jogadores no elenco primeiro.</div>`;
+
+            } catch (e) {
+                console.error("Error updating UI:", e);
+            }
+        }
+
+        // --- Modals ---
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+        }
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+        }
+
+        // Close on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(el => {
+            el.addEventListener('click', e => {
+                if (e.target === el) el.classList.remove('active');
+            });
+        });
+
+        // --- CRUD Elenco ---
+        function editElenco(id) {
+            const j = elencoData.find(x => x.id === id);
+            document.getElementById('modal-elenco-title').textContent = "Editar Jogador";
+            document.getElementById('elenco-id').value = j.id;
+            document.getElementById('elenco-nome').value = j.nome;
+            document.getElementById('elenco-posicao').value = j.posicao;
+            openModal('modal-elenco');
+        }
+
+        async function saveElenco() {
+            const id = document.getElementById('elenco-id').value;
+            const data = {
+                nome: document.getElementById('elenco-nome').value,
+                posicao: document.getElementById('elenco-posicao').value
+            };
+
+            if (id) {
+                await fetchAPI(`/elenco/${id}`, 'PUT', data);
+            } else {
+                await fetchAPI('/elenco', 'POST', data);
+            }
+
+            closeModal('modal-elenco');
+            document.getElementById('form-elenco').reset();
+            document.getElementById('elenco-id').value = '';
+            await loadData(); updateUI();
+        }
+
+        async function delElenco(id) {
+            if (!confirm("Tem certeza que deseja excluir este jogador? O histórico será perdido.")) return;
+            await fetchAPI(`/elenco/${id}`, 'DELETE');
+            await loadData(); updateUI();
+        }
+
+        // --- CRUD Partida ---
+        function togglePartidaFields() {
+            const status = document.getElementById('partida-status').value;
+            document.getElementById('placar-fields').style.display = status === 'finalizado' ? 'block' : 'none';
+        }
+
+        function editPartida(id) {
+            const p = calendarioData.find(x => x.id === id);
+            document.getElementById('modal-partida-title').textContent = "Editar Partida (Lançar Placar)";
+            document.getElementById('partida-id').value = p.id;
+            document.getElementById('partida-data').value = p.data;
+            document.getElementById('partida-adv').value = p.adversario;
+            document.getElementById('partida-status').value = p.status;
+
+            document.getElementById('partida-casa').value = p.placar_casa;
+            document.getElementById('partida-fora').value = p.placar_fora;
+
+            // Check scorers based on saved data
+            const checkboxes = document.querySelectorAll('input[name="artilheiros"]');
+            checkboxes.forEach(cb => {
+                cb.checked = p.artilheiros && p.artilheiros.includes(parseInt(cb.value));
+            });
+
+            togglePartidaFields();
+            openModal('modal-partida');
+        }
+
+        async function savePartida() {
+            const id = document.getElementById('partida-id').value;
+            const status = document.getElementById('partida-status').value;
+
+            const checkedBoxes = Array.from(document.querySelectorAll('input[name="artilheiros"]:checked'));
+            const artilheirosList = checkedBoxes.map(cb => parseInt(cb.value));
+
+            const data = {
+                data: document.getElementById('partida-data').value,
+                adversario: document.getElementById('partida-adv').value,
+                status: status,
+                placar_casa: parseInt(document.getElementById('partida-casa').value || 0),
+                placar_fora: parseInt(document.getElementById('partida-fora').value || 0),
+                artilheiros: artilheirosList
+            };
+
+            if (id) {
+                await fetchAPI(`/calendario/${id}`, 'PUT', data);
+            } else {
+                await fetchAPI('/calendario', 'POST', data);
+            }
+
+            closeModal('modal-partida');
+            document.getElementById('form-partida').reset();
+            document.getElementById('partida-id').value = '';
+            document.getElementById('partida-status').value = 'agendado';
+            togglePartidaFields();
+            await loadData(); updateUI();
+        }
+
+        async function delPartida(id) {
+            if (!confirm("Excluir esta partida? Os gols marcados na artilharia serão revertidos.")) return;
+            await fetchAPI(`/calendario/${id}`, 'DELETE');
+            await loadData(); updateUI();
+        }
+
+        // --- CRUD Financas ---
+        function editTransacao(id) {
+            const t = financeiroData.find(x => x.id === id);
+            document.getElementById('modal-transacao-title').textContent = "Editar Transação";
+            document.getElementById('tx-id').value = t.id;
+            document.getElementById('tx-data').value = t.data;
+            document.getElementById('tx-tipo').value = t.tipo;
+            document.getElementById('tx-desc').value = t.descricao;
+            document.getElementById('tx-valor').value = t.valor;
+            document.getElementById('tx-status').value = t.status;
+            document.getElementById('tx-jogador').value = t.jogador_id || "";
+            openModal('modal-transacao');
+        }
+
+        async function saveTransacao() {
+            const id = document.getElementById('tx-id').value;
+            const data = {
+                data: document.getElementById('tx-data').value,
+                tipo: document.getElementById('tx-tipo').value,
+                descricao: document.getElementById('tx-desc').value,
+                valor: parseFloat(document.getElementById('tx-valor').value),
+                status: document.getElementById('tx-status').value,
+                jogador_id: document.getElementById('tx-jogador').value ? parseInt(document.getElementById('tx-jogador').value) : null
+            };
+
+            if (id) {
+                await fetchAPI(`/financeiro/${id}`, 'PUT', data);
+            } else {
+                await fetchAPI('/financeiro', 'POST', data);
+            }
+
+            closeModal('modal-transacao');
+            document.getElementById('form-transacao').reset();
+            document.getElementById('tx-id').value = '';
+            await loadData(); updateUI();
+        }
+
+        async function delTransacao(id) {
+            if (!confirm("Excluir esta transação?")) return;
+            await fetchAPI(`/financeiro/${id}`, 'DELETE');
+            await loadData(); updateUI();
+        }
+
+        // --- Quick Pay Mensalidade ---
+        function showToast(message, type = 'success', duration = 3000) {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-xmark';
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> ${message}`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), duration);
+        }
+
+        async function pagarMensalidade(jogador_id) {
+            try {
+                await fetchAPI(`/pagar_mensalidade/${jogador_id}`, 'POST');
+                showToast('Mensalidade de R$ 50,00 registrada com sucesso!');
+                await loadData(); updateUI();
+            } catch (e) {
+                showToast('Erro ao registrar pagamento: ' + e.message, 'error');
+            }
+        }
+
+        // Initialize App on load
+        document.addEventListener('DOMContentLoaded', initApp);
+
+        // Helper event to trigger modal reset on add buttons
+        document.querySelectorAll('.btn-primary').forEach(btn => {
+            if (btn.textContent.includes('Novo') || btn.textContent.includes('Agendar')) {
+                btn.addEventListener('click', () => {
+                    const formId = 'form-' + btn.getAttribute('onclick').match(/'modal-(.*)'/)[1];
+                    const idField = btn.getAttribute('onclick').match(/'modal-(.*)'/)[1] + '-id';
+
+                    document.getElementById(formId).reset();
+                    document.getElementById(idField).value = '';
+
+                    if (formId === 'form-partida') {
+                        document.getElementById('partida-status').value = 'agendado';
+                        togglePartidaFields();
+                        document.getElementById('modal-partida-title').textContent = "Agendar Jogo";
+                    } else if (formId === 'form-elenco') {
+                        document.getElementById('modal-elenco-title').textContent = "Novo Jogador";
+                    } else if (formId === 'form-transacao') {
+                        document.getElementById('modal-transacao-title').textContent = "Nova Transação";
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+
+</html>
