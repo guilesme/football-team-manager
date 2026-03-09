@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.2.0] — 2026-03-09
+
+### Added
+- **Multi-goal support**: replaced binary goal checkboxes with numeric inputs per player. The backend now associates goal quantities with each player per match instead of a flat list, automatically migrating old data.
+- **API Pagination**: added `?limit=` and `?offset=` query string parameters to all `GET` routes (`/api/elenco`, `/api/calendario`, `/api/financeiro`) for scalable data fetching.
+
+---
+
 ## [1.1.1] — 2026-03-09
 
 ### Fixed

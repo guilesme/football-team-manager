@@ -450,9 +450,9 @@
             background-size: 1em;
         }
 
-        /* Checkbox list for artilheiros */
+        /* Goal scorer list */
         .scorer-list {
-            max-height: 200px;
+            max-height: 240px;
             overflow-y: auto;
             background: rgba(15, 23, 42, 0.5);
             border: 1px solid var(--border);
@@ -464,12 +464,33 @@
             display: flex;
             align-items: center;
             gap: 0.75rem;
-            padding: 0.5rem;
+            padding: 0.5rem 0.75rem;
             border-radius: 0.25rem;
         }
 
         .scorer-item:hover {
             background: rgba(255, 255, 255, 0.05);
+        }
+
+        .scorer-item input[type="number"] {
+            width: 60px;
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.35rem 0.5rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        .scorer-item input[type="number"]:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .scorer-item .scorer-name {
+            flex: 1;
+            font-size: 0.875rem;
         }
 
         /* Toast Notification */
@@ -645,10 +666,16 @@
                                 <th style="text-align: right;">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="table-elenco">
-                            <!-- Filled via JS -->
-                        </tbody>
                     </table>
+                </div>
+                <div class="pagination-controls"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-top: 1px solid var(--border);">
+                    <button class="btn btn-icon" onclick="changePage('elenco', -1)"><i
+                            class="fa-solid fa-chevron-left"></i></button>
+                    <span style="color: var(--text-secondary); font-size: 0.875rem;" id="pag-info-elenco">Página
+                        1</span>
+                    <button class="btn btn-icon" onclick="changePage('elenco', 1)"><i
+                            class="fa-solid fa-chevron-right"></i></button>
                 </div>
             </div>
         </div>
@@ -674,10 +701,16 @@
                                 <th style="text-align: right;">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="table-calendario">
-                            <!-- Filled via JS -->
-                        </tbody>
                     </table>
+                </div>
+                <div class="pagination-controls"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-top: 1px solid var(--border);">
+                    <button class="btn btn-icon" onclick="changePage('calendario', -1)"><i
+                            class="fa-solid fa-chevron-left"></i></button>
+                    <span style="color: var(--text-secondary); font-size: 0.875rem;" id="pag-info-calendario">Página
+                        1</span>
+                    <button class="btn btn-icon" onclick="changePage('calendario', 1)"><i
+                            class="fa-solid fa-chevron-right"></i></button>
                 </div>
             </div>
         </div>
@@ -732,10 +765,16 @@
                                 <th style="text-align: right;">Ações</th>
                             </tr>
                         </thead>
-                        <tbody id="table-financeiro">
-                            <!-- Filled via JS -->
-                        </tbody>
                     </table>
+                </div>
+                <div class="pagination-controls"
+                    style="display: flex; justify-content: space-between; align-items: center; padding: 1rem; border-top: 1px solid var(--border);">
+                    <button class="btn btn-icon" onclick="changePage('financeiro', -1)"><i
+                            class="fa-solid fa-chevron-left"></i></button>
+                    <span style="color: var(--text-secondary); font-size: 0.875rem;" id="pag-info-financeiro">Página
+                        1</span>
+                    <button class="btn btn-icon" onclick="changePage('financeiro', 1)"><i
+                            class="fa-solid fa-chevron-right"></i></button>
                 </div>
             </div>
         </div>
@@ -829,12 +868,12 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Jogadores que fizeram os gols (Artilheiros)</label>
+                            <label>Gols por Jogador (Artilheiros)</label>
                             <div class="scorer-list" id="scorer-list-container">
-                                <!-- Filled via JS: checkboxes of players -->
+                                <!-- Filled via JS: number inputs per player -->
                             </div>
                             <small style="color: var(--text-secondary); margin-top: 0.5rem; display: block;">
-                                * Marque a caixinha do jogador se ele fez pelo menos 1 gol.
+                                * Informe a quantidade de gols de cada jogador nesta partida.
                             </small>
                         </div>
                     </div>
@@ -927,9 +966,16 @@
         }
 
         // Global State
-        let elencoData = [];
+        let elencoData = []; // Full list for lookups and selects
+        let elencoPage = []; // Paginated list for table
         let calendarioData = [];
         let financeiroData = [];
+
+        let paginacao = {
+            elenco: { page: 1, limit: 10, total: 0 },
+            calendario: { page: 1, limit: 10, total: 0 },
+            financeiro: { page: 1, limit: 10, total: 0 }
+        };
 
         // Formatting Helpers
         const formatMoney = (val) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val);
@@ -969,14 +1015,15 @@
 
         async function loadData() {
             try {
-                const [elenco, cal, fin] = await Promise.all([
-                    fetchAPI('/elenco'),
-                    fetchAPI('/calendario'),
-                    fetchAPI('/financeiro')
+                // Fetch full elenco for lookups and selects
+                elencoData = await fetchAPI('/elenco');
+
+                // Load first page of all tables
+                await Promise.all([
+                    loadTablePage('elenco', paginacao.elenco.page),
+                    loadTablePage('calendario', paginacao.calendario.page),
+                    loadTablePage('financeiro', paginacao.financeiro.page)
                 ]);
-                elencoData = elenco;
-                calendarioData = cal;
-                financeiroData = fin;
 
                 // Populate Selects
                 const jogSelect = document.getElementById('tx-jogador');
@@ -985,15 +1032,42 @@
 
                 const scorerList = document.getElementById('scorer-list-container');
                 scorerList.innerHTML = elencoData.map(j => `
-                    <label class="scorer-item">
-                        <input type="checkbox" name="artilheiros" value="${j.id}">
-                        ${esc(j.nome)} (${esc(j.posicao)})
-                    </label>
+                    <div class="scorer-item">
+                        <input type="number" name="artilheiro-gols" data-jogador-id="${j.id}" min="0" value="0">
+                        <span class="scorer-name">${esc(j.nome)} (${esc(j.posicao)})</span>
+                    </div>
                 `).join('');
 
             } catch (e) {
                 console.error("Error loading data:", e);
                 showToast('Erro ao carregar dados: ' + e.message, 'error', 5000);
+            }
+        }
+
+        async function loadTablePage(tab, page) {
+            paginacao[tab].page = page;
+            const { limit } = paginacao[tab];
+            const offset = (page - 1) * limit;
+            try {
+                const res = await fetchAPI(`/${tab}?limit=${limit}&offset=${offset}`);
+                paginacao[tab].total = res.total;
+
+                if (tab === 'elenco') elencoPage = res.data;
+                if (tab === 'calendario') calendarioData = res.data;
+                if (tab === 'financeiro') financeiroData = res.data;
+
+            } catch (e) {
+                console.error(`Erro ao carregar página ${page} de ${tab}`, e);
+            }
+        }
+
+        async function changePage(tab, dir) {
+            const p = paginacao[tab];
+            const maxPage = Math.ceil(p.total / p.limit) || 1;
+            const newPage = p.page + dir;
+            if (newPage >= 1 && newPage <= maxPage) {
+                await loadTablePage(tab, newPage);
+                updateUI();
             }
         }
 
@@ -1052,7 +1126,7 @@
                 `).join('') || `<tr><td colspan="3" style="text-align: center; color: var(--text-secondary)">Nenhum dado</td></tr>`;
 
                 // --- Elenco Table ---
-                document.getElementById('table-elenco').innerHTML = elencoData.map(j => `
+                document.getElementById('table-elenco').innerHTML = elencoPage.map(j => `
                     <tr>
                         <td style="color: var(--text-secondary)">#${j.id}</td>
                         <td style="font-weight: 500">${esc(j.nome)}</td>
@@ -1063,23 +1137,23 @@
                             <button class="btn btn-icon btn-danger" onclick="delElenco(${j.id})"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
-                `).join('') || `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary)">Sem jogadores cadastrados</td></tr>`;
+                `).join('') || `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary)">Sem jogadores na página</td></tr>`;
 
                 // --- Calendario Table ---
-                document.getElementById('table-calendario').innerHTML = calendarioData.sort((a, b) => new Date(b.data) - new Date(a.data)).map(p => `
+                document.getElementById('table-calendario').innerHTML = calendarioData.map(p => `
                     <tr>
                         <td style="color: var(--text-secondary)">${formatDate(p.data)}</td>
                         <td style="font-weight: 500">${esc(p.adversario)}</td>
                         <td style="text-align: center;">
-                            ${p.status === 'finalizado' ? `<span style="font-size:1.1rem; font-weight:600; padding:4px 12px; background:rgba(255,255,255,0.05); border-radius:6px; font-variant-numeric: tabular-nums;">${p.placar_casa} - ${p.placar_fora}</span>` : '<span style="color:var(--text-secondary)">-</span>'}
+                            ${p.status === 'finalizado' ? `<span style="font-size:1.1rem; font-weight:600; padding:4px 12px; background:rgba(255,255,255,0.05); border-radius:6px; font-variant-numeric: tabular-nums;">${p.placar_casa} - ${p.placar_fora}</span><div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px;">${p.artilheiros && p.artilheiros.length > 0 ? p.artilheiros.map(a => { const jog = elencoData.find(j => j.id === (a.jogador_id || a)); return jog ? esc(jog.nome) + (a.gols > 1 ? ' (' + a.gols + ')' : '') : ''; }).filter(Boolean).join(', ') : 'Sem gols'}</div>` : '<span style="color:var(--text-secondary)">-</span>'}
                         </td>
                         <td><span class="badge ${esc(p.status)}">${esc(p.status).toUpperCase()}</span></td>
                         <td style="text-align: right;">
                             <button class="btn btn-icon" onclick="editPartida('${esc(p.id)}')"><i class="fa-solid fa-pen"></i></button>
                             <button class="btn btn-icon btn-danger" onclick="delPartida('${esc(p.id)}')"><i class="fa-solid fa-trash"></i></button>
                         </td>
-                    </tr>
-                `).join('') || `<tr><td colspan="5" style="text-align: center; color: var(--text-secondary)">Sem jogos cadastrados</td></tr>`;
+                    </tr >
+                    `).join('') || ` < tr > <td colspan="5" style="text-align: center; color: var(--text-secondary)">Sem jogos na página</td></tr > `;
 
                 // --- Financeiro Table ---
                 const formatTableMoney = (val) => new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val);
@@ -1088,13 +1162,13 @@
                 document.getElementById('fin-despesas').textContent = formatMoney(stats.despesas);
                 document.getElementById('fin-saldo').textContent = formatMoney(stats.saldo);
 
-                document.getElementById('table-financeiro').innerHTML = financeiroData.sort((a, b) => new Date(b.data) - new Date(a.data)).map(t => {
+                document.getElementById('table-financeiro').innerHTML = financeiroData.map(t => {
                     const jog = elencoData.find(j => j.id == t.jogador_id);
                     const jogNome = jog ? esc(jog.nome) : '<span style="color:var(--text-secondary)">-</span>';
                     const numColor = t.tipo === 'receita' ? 'var(--success)' : 'var(--danger)';
                     const sign = t.tipo === 'despesa' ? '- ' : '+ ';
                     return `
-                    <tr>
+                    < tr >
                         <td style="color: var(--text-secondary)">${formatDate(t.data)}</td>
                         <td>
                             <div style="font-weight: 500">${esc(t.descricao)}</div>
@@ -1110,7 +1184,13 @@
                             <button class="btn btn-icon btn-danger" onclick="delTransacao('${esc(t.id)}')"><i class="fa-solid fa-trash"></i></button>
                         </td>
                     </tr>
-                `}).join('') || `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary)">Sem transações registradas</td></tr>`;
+                `}).join('') || `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary)">Sem transações na página</td></tr>`;
+
+                // Update Pagination Strings
+                ['elenco', 'calendario', 'financeiro'].forEach(tab => {
+                    const maxPage = Math.max(1, Math.ceil(paginacao[tab].total / paginacao[tab].limit));
+                    document.getElementById(`pag-info-${tab}`).textContent = `Página ${paginacao[tab].page} de ${maxPage} (Total: ${paginacao[tab].total})`;
+                });
 
                 // --- Mensalidades Rápidas (Quick Pay) ---
                 document.getElementById('lista-mensalidades').innerHTML = elencoData.map(j => `
@@ -1162,7 +1242,7 @@
                 };
 
                 if (id) {
-                    await fetchAPI(`/elenco/${id}`, 'PUT', data);
+                    await fetchAPI(`/ elenco / ${id}`, 'PUT', data);
                 } else {
                     await fetchAPI('/elenco', 'POST', data);
                 }
@@ -1180,7 +1260,7 @@
         async function delElenco(id) {
             if (!confirm("Tem certeza que deseja excluir este jogador? O histórico será perdido.")) return;
             try {
-                await fetchAPI(`/elenco/${id}`, 'DELETE');
+                await fetchAPI(`/ elenco / ${id}`, 'DELETE');
                 await loadData(); updateUI();
                 showToast('Jogador excluído com sucesso!');
             } catch (e) {
@@ -1205,10 +1285,20 @@
             document.getElementById('partida-casa').value = p.placar_casa;
             document.getElementById('partida-fora').value = p.placar_fora;
 
-            // Check scorers based on saved data
-            const checkboxes = document.querySelectorAll('input[name="artilheiros"]');
-            checkboxes.forEach(cb => {
-                cb.checked = p.artilheiros && p.artilheiros.includes(parseInt(cb.value));
+            // Populate goal counts from saved data
+            const golInputs = document.querySelectorAll('input[name="artilheiro-gols"]');
+            golInputs.forEach(inp => {
+                const jid = parseInt(inp.dataset.jogadorId);
+                const entry = p.artilheiros && p.artilheiros.find(a => {
+                    // Support both old format (plain id) and new format ({jogador_id, gols})
+                    if (typeof a === 'number') return a === jid;
+                    return a.jogador_id === jid;
+                });
+                if (entry) {
+                    inp.value = typeof entry === 'number' ? 1 : (entry.gols || 1);
+                } else {
+                    inp.value = 0;
+                }
             });
 
             togglePartidaFields();
@@ -1220,8 +1310,15 @@
                 const id = document.getElementById('partida-id').value;
                 const status = document.getElementById('partida-status').value;
 
-                const checkedBoxes = Array.from(document.querySelectorAll('input[name="artilheiros"]:checked'));
-                const artilheirosList = checkedBoxes.map(cb => parseInt(cb.value));
+                // Collect artilheiros with gols > 0
+                const golInputs = document.querySelectorAll('input[name="artilheiro-gols"]');
+                const artilheirosList = [];
+                golInputs.forEach(inp => {
+                    const gols = parseInt(inp.value) || 0;
+                    if (gols > 0) {
+                        artilheirosList.push({ jogador_id: parseInt(inp.dataset.jogadorId), gols: gols });
+                    }
+                });
 
                 const data = {
                     data: document.getElementById('partida-data').value,
@@ -1233,7 +1330,7 @@
                 };
 
                 if (id) {
-                    await fetchAPI(`/calendario/${id}`, 'PUT', data);
+                    await fetchAPI(`/ calendario / ${id}`, 'PUT', data);
                 } else {
                     await fetchAPI('/calendario', 'POST', data);
                 }
@@ -1242,8 +1339,8 @@
                 document.getElementById('form-partida').reset();
                 document.getElementById('partida-id').value = '';
                 document.getElementById('partida-status').value = 'agendado';
-                // Reset artilheiro checkboxes
-                document.querySelectorAll('input[name="artilheiros"]').forEach(cb => cb.checked = false);
+                // Reset artilheiro goal inputs
+                document.querySelectorAll('input[name="artilheiro-gols"]').forEach(inp => inp.value = 0);
                 togglePartidaFields();
                 await loadData(); updateUI();
                 showToast('Partida salva com sucesso!');
@@ -1255,7 +1352,7 @@
         async function delPartida(id) {
             if (!confirm("Excluir esta partida? Os gols marcados na artilharia serão revertidos.")) return;
             try {
-                await fetchAPI(`/calendario/${id}`, 'DELETE');
+                await fetchAPI(`/ calendario / ${id}`, 'DELETE');
                 await loadData(); updateUI();
                 showToast('Partida excluída com sucesso!');
             } catch (e) {
@@ -1290,7 +1387,7 @@
                 };
 
                 if (id) {
-                    await fetchAPI(`/financeiro/${id}`, 'PUT', data);
+                    await fetchAPI(`/ financeiro / ${id}`, 'PUT', data);
                 } else {
                     await fetchAPI('/financeiro', 'POST', data);
                 }
@@ -1308,7 +1405,7 @@
         async function delTransacao(id) {
             if (!confirm("Excluir esta transação?")) return;
             try {
-                await fetchAPI(`/financeiro/${id}`, 'DELETE');
+                await fetchAPI(`/ financeiro / ${id}`, 'DELETE');
                 await loadData(); updateUI();
                 showToast('Transação excluída com sucesso!');
             } catch (e) {
@@ -1322,14 +1419,14 @@
             const toast = document.createElement('div');
             const icon = type === 'success' ? 'fa-circle-check' : 'fa-circle-xmark';
             toast.className = `toast ${type}`;
-            toast.innerHTML = `<i class="fa-solid ${icon}"></i> ${esc(message)}`;
+            toast.innerHTML = `< i class= "fa-solid ${icon}" ></i > ${esc(message)}`;
             container.appendChild(toast);
             setTimeout(() => toast.remove(), duration);
         }
 
         async function pagarMensalidade(jogador_id) {
             try {
-                await fetchAPI(`/pagar_mensalidade/${jogador_id}`, 'POST');
+                await fetchAPI(`/ pagar_mensalidade / ${jogador_id}`, 'POST');
                 showToast('Mensalidade de R$ 50,00 registrada com sucesso!');
                 await loadData(); updateUI();
             } catch (e) {
@@ -1356,8 +1453,8 @@
 
                     if (formId === 'form-partida') {
                         document.getElementById('partida-status').value = 'agendado';
-                        // Reset artilheiro checkboxes
-                        document.querySelectorAll('input[name="artilheiros"]').forEach(cb => cb.checked = false);
+                        // Reset artilheiro goal inputs
+                        document.querySelectorAll('input[name="artilheiro-gols"]').forEach(inp => inp.value = 0);
                         togglePartidaFields();
                         document.getElementById('modal-partida-title').textContent = "Agendar Jogo";
                     } else if (formId === 'form-elenco') {
