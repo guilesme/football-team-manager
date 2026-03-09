@@ -40,7 +40,7 @@ Escolha o método de instalação que preferir:
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/SEU_USUARIO/football-team-manager.git
+git clone https://github.com/guilesme/football-team-manager.git
 cd football-team-manager
 
 # 2. Suba a aplicação
@@ -65,7 +65,7 @@ docker compose down
 
 ```bash
 # 1. Clone o repositório
-git clone https://github.com/SEU_USUARIO/football-team-manager.git
+git clone https://github.com/guilesme/football-team-manager.git
 cd football-team-manager
 
 # 2. Crie e ative o ambiente virtual
@@ -83,7 +83,7 @@ python app.py
 
 ```powershell
 # 1. Clone o repositório
-git clone https://github.com/SEU_USUARIO/football-team-manager.git
+git clone https://github.com/guilesme/football-team-manager.git
 cd football-team-manager
 
 # 2. Crie e ative o ambiente virtual
