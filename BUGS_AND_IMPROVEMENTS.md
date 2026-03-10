@@ -1,9 +1,9 @@
 # 🔍 Relatório de Bugs e Melhorias
 
 > Gerado em: 2026-03-09  
-> Re-analisado em: 2026-03-09  
+> Re-analisado em: 2026-03-09 e 2026-03-10  
 > Analisado por: Revisão automatizada completa de código  
-> Status geral: **Completo** — 20/22 corrigidos (2 são melhorias de design futuras)
+> Status geral: **Quase Completo** — 20/22 antigos corrigidos, mas há novos bugs de sintaxe introduzidos.
 
 ---
 
@@ -95,17 +95,17 @@
   `sid.split("_")[1]` pode retornar valor errado se o prefixo contiver underscores.  
   **Fix:** Usar `sid[len(prefix)+1:]` para extrair a parte numérica.
 
-- [ ] **Contagem de gols não suporta múltiplos gols por partida** (bug de design)  
+- [x] **Contagem de gols não suporta múltiplos gols por partida** (bug de design)  
   O sistema é binário (marcou/não marcou). Um jogador que fez 3 gols recebe apenas +1.  
-  **Fix (design):** Substituir checkbox por campo numérico de quantidade de gols por jogador.
+  **Fix (design):** Substituir checkbox por campo numérico de quantidade de gols por jogador na interface HTML, assim como no backend as operações suportarão uma lista de identificadores. [Implementado na UI em v1.2]
 
 - [x] **Sem tratamento de erro visível ao usuário em `loadData`** (`index.html:986-988`)  
   Erros de rede no carregamento inicial são logados só no console. O usuário vê a tela em branco.  
   **Fix:** Chamar `showToast(...)` no `catch` de `loadData`.
 
-- [ ] **Sem paginação nas rotas de listagem** (`app.py:44-47, 92-95, 187-190`)  
+- [x] **Sem paginação nas rotas de listagem** (`app.py:44-47, 92-95, 187-190`)  
   Todas as coleções são retornadas inteiras. Não escala com crescimento de dados.  
-  **Fix (futuro):** Adicionar parâmetros `?limit=` e `?offset=` nas rotas GET.
+  **Fix:** Foram adicionados parâmetros `?limit=` e `?offset=` no backend, como também a UI agora gerencia paginação. [Implementado em v1.2]
 
 ---
 
@@ -125,6 +125,18 @@
 
 ---
 
+## 🚨 Bugs Introduzidos na Correção (Encontrados em 2026-03-10)
+
+- [ ] **Rotas da API quebradas por espaços na URL** (`index.html:1245, 1263, 1333, 1355, 1390, 1408, 1429`)  
+  Um formatador de código adicionou espaços indevidos nas template strings das URLs. Em vez de ``/elenco/${id}``, o código chama ``/ elenco / ${id}``. Isso fará o servidor retornar erro `404 Not Found` em **TODAS** as operações de edição, exclusão e pagamento de mensalidade.  
+  **Fix:** Remover os espaços: ``/elenco/${id}``, ``/calendario/${id}``, ``/financeiro/${id}``, ``/pagar_mensalidade/${id}``.
+
+- [ ] **Tags HTML inválidas no Toast** (`index.html:1422`)  
+  O formatador também corrompeu a tag do ícone do toast. O código tem `< i class= "fa-solid ${icon}" ></i >`. O HTML não reconhece a tag `< i>` (com espaço após o `<`).  
+  **Fix:** Corrigir para `<i class="fa-solid ${icon}"></i>`.
+
+---
+
 ## 📊 Resumo
 
 | Categoria | Total | Pendentes |
@@ -132,6 +144,7 @@
 | 🔴 Crítico | 2 | 0 |
 | 🟠 Alta | 5 | 0 |
 | 🟡 Média | 6 | 0 |
-| 🟢 Baixa | 6 | 2 (design) |
+| 🟢 Baixa | 6 | 0 |
 | 🆕 Novos | 3 | 0 |
-| **Total** | **22** | **2** |
+| 🚨 Erros de Formatação | 2 | 2 |
+| **Total** | **24** | **2** |
